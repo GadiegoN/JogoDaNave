@@ -5,15 +5,29 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
 
     void Update()
-{
-    float inputX = Input.GetAxis("Horizontal");
-    float inputY = Input.GetAxis("Vertical");
+    {
+        float inputX = 0f;
 
-    Vector3 pos = transform.position;
-    pos.x = Mathf.Clamp(pos.x, -2.5f, 2.5f); // ajuste conforme tamanho da tela
-    pos.y = Mathf.Clamp(pos.y, -4.5f, 4.5f);
+        // Teclado (funciona no Editor/PC)
+        if (Application.isEditor || Application.platform == RuntimePlatform.WindowsPlayer)
+        {
+            inputX = Input.GetAxis("Horizontal");
+        }
 
-    Vector2 move = new Vector2(inputX, inputY);
-    transform.position = pos + (Vector3)(move * moveSpeed * Time.deltaTime);
-}
+        // Toque (funciona em dispositivos mobile)
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            Vector3 touchPos = Camera.main.ScreenToWorldPoint(touch.position);
+            inputX = touchPos.x > transform.position.x ? 1f : -1f;
+        }
+
+        // Movimento
+        Vector3 move = new Vector3(inputX * moveSpeed * Time.deltaTime, 0f, 0f);
+        transform.Translate(move);
+
+        // Limitar dentro da tela
+        float clampedX = Mathf.Clamp(transform.position.x, -2.5f, 2.5f);
+        transform.position = new Vector3(clampedX, transform.position.y, transform.position.z);
+    }
 }
